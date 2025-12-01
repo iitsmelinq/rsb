@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Lab Analyzer</title>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Sarabun', 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
+      min-height: 100%;
+      width: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .app-container {
+      width: 100%;
+      min-height: 100%;
+      padding: 2rem 1rem;
+    }
+
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: linear-gradient(to bottom, #ffffff 0%, #f8fbff 100%);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(33, 150, 243, 0.15), 0 0 100px rgba(33, 150, 243, 0.1);
+      padding: 2.5rem;
+      border: 1px solid rgba(144, 202, 249, 0.3);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 3px solid #42a5f5;
+      position: relative;
+    }
+
+    header::before {
+      content: '🏥';
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #1976d2;
+      margin: 0 0 0.5rem 0;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #666;
+      margin: 0;
+    }
+
+    .case-selector {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .case-button {
+      background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(66, 165, 245, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .case-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66, 165, 245, 0.5);
+      background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    }
+
+    .case-button.active {
+      background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);
+      box-shadow: 0 6px 25px rgba(41, 182, 246, 0.5);
+    }
+
+    .case-display {
+      display: none;
+    }
+
+    .case-display.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .patient-info {
+      background: linear-gradient(135deg, #e3f2fd 0%, #f8fbff 100%);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      border-left: 5px solid #42a5f5;
+      box-shadow: 0 4px 15px rgba(66, 165, 245, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .patient-info::before {
+      content: '💉';
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      font-size: 3rem;
+      opacity: 0.1;
+    }
+
+    .patient-info h2 {
+      color: #1976d2;
+      font-size: 1.5rem;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .patient-info h2::before {
+      content: '👤';
+      font-size: 1.3rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .info-value {
+      color: #666;
+    }
+
+    .history {
+      color: #444;
+      line-height: 1.6;
+      margin-top: 1rem;
+    }
+
+    .lab-results {
+      margin-bottom: 2rem;
+    }
+
+    .lab-results h2 {
+      color: #667eea;
+      font-size: 1.5rem;
+      margin: 0 0 1rem 0;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .results-table thead {
+      background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+      color: white;
+    }
+
+    .lab-results h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .lab-results h2::before {
+      content: '🔬';
+      font-size: 1.3rem;
+    }
+
+    .results-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .results-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .results-table tbody tr:hover {
+      background: #f8f9ff;
+    }
+
+    .abnormal {
+      color: #e74c3c;
+      font-weight: 700;
+      background: #ffe5e5;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    .normal {
+      color: #27ae60;
+    }
+
+    .pending {
+      color: #f39c12;
+      font-style: italic;
+    }
+
+    .input-section {
+      background: linear-gradient(135deg, #e1f5fe 0%, #f8fbff 100%);
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 15px rgba(66, 165, 245, 0.1);
+      border: 2px solid rgba(66, 165, 245, 0.2);
+    }
+
+    .input-section h3 {
+      color: #1976d2;
+      font-size: 1.3rem;
+      margin: 0 0 1.5rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .radio-group, .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      padding-left: 1rem;
+    }
+
+    .radio-option, .checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .radio-option:hover, .checkbox-option:hover {
+      background: white;
+    }
+
+    .radio-option input, .checkbox-option input {
+      width: 1.2rem;
+      height: 1.2rem;
+      cursor: pointer;
+    }
+
+    .radio-option label, .checkbox-option label {
+      margin: 0;
+      font-weight: 400;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .submit-button {
+      background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+      color: white;
+      border: none;
+      padding: 1rem 3rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(66, 165, 245, 0.4);
+      width: 100%;
+    }
+
+    .submit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66, 165, 245, 0.6);
+      background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    }
+
+    .submit-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .feedback-section {
+      display: none;
+      background: linear-gradient(to bottom, #ffffff 0%, #e3f2fd 100%);
+      padding: 2rem;
+      border-radius: 12px;
+      margin-top: 2rem;
+      border: 3px solid #42a5f5;
+      animation: fadeIn 0.5s ease;
+      box-shadow: 0 8px 30px rgba(66, 165, 245, 0.2);
+    }
+
+    .feedback-section.active {
+      display: block;
+    }
+
+    .feedback-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .score {
+      font-size: 3rem;
+      font-weight: 700;
+      margin: 1rem 0;
+    }
+
+    .score.excellent {
+      color: #27ae60;
+    }
+
+    .score.good {
+      color: #f39c12;
+    }
+
+    .score.poor {
+      color: #e74c3c;
+    }
+
+    .feedback-content {
+      line-height: 1.8;
+      color: #444;
+      margin-bottom: 2rem;
+    }
+
+    .feedback-content h4 {
+      color: #667eea;
+      font-size: 1.2rem;
+      margin: 1.5rem 0 0.8rem 0;
+    }
+
+    .correct-answer {
+      background: #d4edda;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #27ae60;
+      margin: 1rem 0;
+    }
+
+    .rationale {
+      background: #fff3cd;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #f39c12;
+      margin: 1.5rem 0;
+    }
+
+    .rationale h4 {
+      color: #f39c12;
+      margin-top: 0;
+    }
+
+    .case-image {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .case-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .next-button {
+      background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);
+      color: white;
+      border: none;
+      padding: 1rem 3rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(41, 182, 246, 0.4);
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .next-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(41, 182, 246, 0.6);
+      background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+    }
+
+    .loading {
+      text-align: center;
+      color: #1976d2;
+      font-size: 1.2rem;
+      padding: 3rem;
+    }
+
+    .intro-section {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 6px 25px rgba(66, 165, 245, 0.15);
+      border: 2px solid rgba(66, 165, 245, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .intro-section::before {
+      content: '🔬';
+      position: absolute;
+      right: -20px;
+      bottom: -20px;
+      font-size: 10rem;
+      opacity: 0.05;
+    }
+
+    .intro-section h2 {
+      color: #1976d2;
+      font-size: 1.8rem;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .intro-section h2::before {
+      content: '📋';
+      font-size: 1.5rem;
+    }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .intro-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(66, 165, 245, 0.1);
+      transition: all 0.3s ease;
+      border-left: 4px solid #42a5f5;
+    }
+
+    .intro-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(66, 165, 245, 0.2);
+    }
+
+    .intro-card h3 {
+      color: #1976d2;
+      font-size: 1.2rem;
+      margin: 0 0 0.8rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .intro-card p {
+      color: #555;
+      line-height: 1.6;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .intro-card ul {
+      color: #555;
+      line-height: 1.8;
+      margin: 0.5rem 0 0 0;
+      padding-left: 1.5rem;
+    }
+
+    .intro-card li {
+      margin-bottom: 0.3rem;
+    }
+
+    @media (max-width: 768px) {
+      .content-wrapper {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .results-table {
+        font-size: 0.9rem;
+      }
+
+      .results-table th,
+      .results-table td {
+        padding: 0.7rem;
+      }
+
+      .score {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="app-container">
+   <div class="content-wrapper">
+    <header>
+     <h1 id="main-title">Virtual Lab Analyzer</h1>
+     <p class="subtitle" id="subtitle">ระบบฝึกฝนการวิเคราะห์และแปลผลข้อมูลทางห้องปฏิบัติการ</p>
+    </header>
+    <div class="intro-section" id="intro-section">
+     <h2>เกี่ยวกับระบบ Virtual Lab Analyzer</h2>
+     <p style="color: #555; line-height: 1.8; margin-bottom: 1.5rem;">ระบบฝึกฝนการวิเคราะห์และแปลผลผลการตรวจทางห้องปฏิบัติการสำหรับนักศึกษาแพทย์ เทคนิคการแพทย์ และผู้เตรียมสอบใบประกอบวิชาชีพ โดยมีกรณีศึกษาจริงจากหมวดโลหิตวิทยา (Hematology) และเคมีคลินิก (Clinical Chemistry)</p>
+     <div class="intro-grid">
+      <div class="intro-card">
+       <h3>🩸 โรคโลหิตจาง (Anemia)</h3>
+       <p><strong>สาเหตุและปัจจัย:</strong></p>
+       <ul>
+        <li><strong>ขาดธาตุเหล็ก (IDA)</strong> - ประจำเดือนมามาก อาหาร</li>
+        <li><strong>Thalassemia</strong> - พันธุกรรม พบมากในไทย</li>
+        <li><strong>ขาด B12/Folate</strong> - อาหาร การดูดซึม</li>
+        <li><strong>Hemolytic</strong> - ภูมิคุ้มกัน ยา สารพิษ</li>
+       </ul>
+      </div>
+      <div class="intro-card">
+       <h3>❤️ โรคหัวใจและหลอดเลือด</h3>
+       <p><strong>สาเหตุและปัจจัย:</strong></p>
+       <ul>
+        <li><strong>Acute MI</strong> - หลอดเลือดอุดตัน ไขมันสูง</li>
+        <li><strong>Atherosclerosis</strong> - สูบบุหรี่ เบาหวาน ความดัน</li>
+        <li><strong>Heart Failure</strong> - หัวใจล้มเหลว ไตวาย</li>
+        <li><strong>Angina</strong> - หลอดเลือดตีบ ออกกำลังกาย</li>
+       </ul>
+      </div>
+      <div class="intro-card">
+       <h3>🔬 ค่าทางห้องปฏิบัติการสำคัญ</h3>
+       <p><strong>Cardiac Markers:</strong></p>
+       <ul>
+        <li><strong>Troponin I/T</strong> - ยืนยัน Acute MI</li>
+        <li><strong>CK-MB</strong> - กล้ามเนื้อหัวใจ 3-6 ชม.</li>
+        <li><strong>BNP/NT-proBNP</strong> - Heart Failure</li>
+        <li><strong>Myoglobin</strong> - เพิ่มเร็วสุด 1-4 ชม.</li>
+       </ul>
+      </div>
+      <div class="intro-card">
+       <h3>🧪 ภาวะเมตาบอลิกฉุกเฉิน</h3>
+       <p><strong>สาเหตุและปัจจัย:</strong></p>
+       <ul>
+        <li><strong>DKA</strong> - เบาหวาน ติดเชื้อ ยาไม่สม่ำเสมอ</li>
+        <li><strong>HHS</strong> - เบาหวานชนิดที่ 2 ผู้สูงอายุ</li>
+        <li><strong>Lactic Acidosis</strong> - ช็อก ขาดออกซิเจน</li>
+        <li><strong>Thyroid Storm</strong> - ไทรอยด์เป็นพิษ</li>
+       </ul>
+      </div>
+      <div class="intro-card">
+       <h3>💊 การตรวจเพิ่มเติมที่สำคัญ</h3>
+       <p><strong>ตามลำดับความสำคัญ:</strong></p>
+       <ul>
+        <li><strong>CBC</strong> - ตรวจเม็ดเลือดพื้นฐาน</li>
+        <li><strong>Electrolytes</strong> - Na, K, Cl, HCO3</li>
+        <li><strong>Renal/Liver Function</strong> - ไต ตับ</li>
+        <li><strong>Blood Gas</strong> - pH, pO2, pCO2</li>
+       </ul>
+      </div>
+      <div class="intro-card">
+       <h3>📊 วิธีใช้ระบบ</h3>
+       <p><strong>ขั้นตอนการฝึกฝน:</strong></p>
+       <ul>
+        <li>1️⃣ เลือกกรณีศึกษาจากปุ่มด้านล่าง</li>
+        <li>2️⃣ อ่านประวัติและผลแล็บอย่างละเอียด</li>
+        <li>3️⃣ วิเคราะห์และเลือกการวินิจฉัย</li>
+        <li>4️⃣ เลือกการตรวจเพิ่มเติมที่เหมาะสม</li>
+        <li>5️⃣ รับ feedback และเรียนรู้จากคำอธิบาย</li>
+       </ul>
+      </div>
+     </div>
+    </div>
+    <div class="case-selector" id="case-selector"><!-- Case buttons will be generated here -->
+    </div>
+    <div id="case-container"><!-- Case content will be loaded here -->
+    </div>
+   </div>
+  </div>
+  <script>
+    // Database of case studies
+    const casesData = [
+      {
+        case_id: "Hema-001",
+        category: "Hematology",
+        age: 45,
+        gender: "หญิง",
+        history: "ผู้ป่วยมีอาการอ่อนเพลียเรื้อรัง (Chronic Fatigue) มา 6 เดือน ผิวซีด ลิ้นอักเสบ มีประวัติมีประจำเดือนมามากเป็นเวลานาน",
+        lab_results: {
+          "Hgb": { value: 7.8, unit: "g/dL", reference: "12.0-15.0" },
+          "Hct": { value: 24, unit: "%", reference: "36-44" },
+          "MCV": { value: 70.2, unit: "fL", reference: "80.0-95.0" },
+          "MCH": { value: 22.1, unit: "pg", reference: "27.0-32.0" },
+          "MCHC": { value: 31.5, unit: "g/dL", reference: "32.0-36.0" },
+          "WBC": { value: 8.5, unit: "x10³/µL", reference: "4.0-11.0" },
+          "PLT": { value: 350, unit: "x10³/µL", reference: "150-400" }
+        },
+        image_url: null,
+        correct_diagnosis: "Iron Deficiency Anemia (IDA)",
+        diagnosis_options: [
+          "Iron Deficiency Anemia (IDA)",
+          "Thalassemia",
+          "Aplastic Anemia",
+          "Vitamin B12 Deficiency",
+          "Hemolytic Anemia"
+        ],
+        appropriate_tests: ["Serum Ferritin", "TIBC", "Serum Iron"],
+        test_options: [
+          "Serum Ferritin",
+          "TIBC",
+          "Serum Iron",
+          "Vitamin B12 Level",
+          "Hemoglobin Electrophoresis",
+          "Reticulocyte Count",
+          "Direct Coombs Test"
+        ],
+        rationale: "ผลการตรวจพบ Hgb, Hct, MCV, MCH ต่ำกว่าปกติ เป็นลักษณะของ Microcytic Hypochromic Anemia ร่วมกับประวัติอาการเรื้อรัง ผิวซีด ลิ้นอักเสบ และมีประจำเดือนมามาก สอดคล้องกับภาวะขาดธาตุเหล็ก (Iron Deficiency Anemia) การตรวจ Serum Ferritin, TIBC และ Serum Iron จะช่วยยืนยันการวินิจฉัยได้"
+      },
+      {
+        case_id: "Hema-002",
+        category: "Hematology",
+        age: 28,
+        gender: "ชาย",
+        history: "ผู้ป่วยเป็นชาวไทยภาคใต้ ไม่มีอาการผิดปกติ มาตรวจสุขภาพประจำปี พบว่า Hgb ต่ำเล็กน้อย",
+        lab_results: {
+          "Hgb": { value: 11.2, unit: "g/dL", reference: "13.5-17.5" },
+          "Hct": { value: 35, unit: "%", reference: "40-50" },
+          "MCV": { value: 68.5, unit: "fL", reference: "80.0-95.0" },
+          "MCH": { value: 21.8, unit: "pg", reference: "27.0-32.0" },
+          "RBC": { value: 6.2, unit: "x10⁶/µL", reference: "4.5-5.5" },
+          "WBC": { value: 7.8, unit: "x10³/µL", reference: "4.0-11.0" },
+          "PLT": { value: 280, unit: "x10³/µL", reference: "150-400" }
+        },
+        image_url: null,
+        correct_diagnosis: "Thalassemia Trait",
+        diagnosis_options: [
+          "Iron Deficiency Anemia (IDA)",
+          "Thalassemia Trait",
+          "Sideroblastic Anemia",
+          "Chronic Disease Anemia",
+          "Lead Poisoning"
+        ],
+        appropriate_tests: ["Hemoglobin Electrophoresis", "Serum Ferritin"],
+        test_options: [
+          "Hemoglobin Electrophoresis",
+          "Serum Ferritin",
+          "TIBC",
+          "Serum Iron",
+          "Vitamin B12 Level",
+          "Reticulocyte Count",
+          "Bone Marrow Biopsy"
+        ],
+        rationale: "ผู้ป่วยมี MCV และ MCH ต่ำ (Microcytic Hypochromic) แต่มี RBC count สูงกว่าปกติ ซึ่งเป็นลักษณะเฉพาะของ Thalassemia Trait ประกอบกับไม่มีอาการทางคลินิก และเป็นคนไทยภาคใต้ซึ่งมีอุบัติการณ์สูง การตรวจ Hemoglobin Electrophoresis จะยืนยันการวินิจฉัย และควรตรวจ Serum Ferritin เพื่อแยกจาก IDA"
+      },
+      {
+        case_id: "Hema-003",
+        category: "Hematology",
+        age: 65,
+        gender: "หญิง",
+        history: "ผู้ป่วยมีอาการ ชาปลายมือปลายเท้า เดินเซ มีอาการมา 3 เดือน ตรวจร่างกายพบลิ้นเรียบแดง",
+        lab_results: {
+          "Hgb": { value: 8.5, unit: "g/dL", reference: "12.0-15.0" },
+          "Hct": { value: 26, unit: "%", reference: "36-44" },
+          "MCV": { value: 112, unit: "fL", reference: "80.0-95.0" },
+          "MCH": { value: 36.5, unit: "pg", reference: "27.0-32.0" },
+          "WBC": { value: 4.2, unit: "x10³/µL", reference: "4.0-11.0" },
+          "PLT": { value: 135, unit: "x10³/µL", reference: "150-400" }
+        },
+        image_url: null,
+        correct_diagnosis: "Vitamin B12 Deficiency (Megaloblastic Anemia)",
+        diagnosis_options: [
+          "Iron Deficiency Anemia (IDA)",
+          "Folate Deficiency",
+          "Vitamin B12 Deficiency (Megaloblastic Anemia)",
+          "Hypothyroidism",
+          "Liver Disease"
+        ],
+        appropriate_tests: ["Vitamin B12 Level", "Serum Folate", "Methylmalonic Acid"],
+        test_options: [
+          "Vitamin B12 Level",
+          "Serum Folate",
+          "Methylmalonic Acid",
+          "Serum Ferritin",
+          "TSH",
+          "Liver Function Test",
+          "Reticulocyte Count"
+        ],
+        rationale: "ผู้ป่วยมี MCV และ MCH สูงกว่าปกติ (Macrocytic Anemia) ร่วมกับอาการทางระบบประสาท (ชา เดินเซ) และลิ้นเรียบแดง เป็นลักษณะของ Megaloblastic Anemia จากการขาด Vitamin B12 การตรวจ Vitamin B12 Level และ Methylmalonic Acid จะยืนยันการวินิจฉัย ควรตรวจ Serum Folate ด้วยเพื่อแยกสาเหตุ"
+      },
+      {
+        case_id: "Chem-001",
+        category: "Clinical Chemistry",
+        age: 52,
+        gender: "ชาย",
+        history: "ผู้ป่วยมีอาการปวดหน้าอกรุนแรงเมื่อ 4 ชั่วโมงที่แล้ว แพทย์สงสัยภาวะกล้ามเนื้อหัวใจตายเฉียบพลัน",
+        lab_results: {
+          "Troponin-I": { value: 12.5, unit: "ng/mL", reference: "<0.04" },
+          "CK-MB": { value: 85, unit: "U/L", reference: "<25" },
+          "CK-Total": { value: 450, unit: "U/L", reference: "38-174" },
+          "LDH": { value: 380, unit: "U/L", reference: "140-280" },
+          "AST": { value: 120, unit: "U/L", reference: "10-40" }
+        },
+        image_url: null,
+        correct_diagnosis: "Acute Myocardial Infarction (AMI)",
+        diagnosis_options: [
+          "Acute Myocardial Infarction (AMI)",
+          "Unstable Angina",
+          "Pulmonary Embolism",
+          "Pericarditis",
+          "Muscle Injury"
+        ],
+        appropriate_tests: ["Serial Troponin", "ECG", "Echocardiogram"],
+        test_options: [
+          "Serial Troponin",
+          "ECG",
+          "Echocardiogram",
+          "D-Dimer",
+          "Myoglobin",
+          "BNP",
+          "Chest X-ray"
+        ],
+        rationale: "ผู้ป่วยมี Cardiac markers สูงขึ้นอย่างมีนัยสำคัญ โดยเฉพาะ Troponin-I ที่สูงมากกว่า 300 เท่าของค่าปกติ ร่วมกับ CK-MB และ CK-Total ที่สูงขึ้น ในผู้ป่วยที่มีอาการปวดหน้าอกรุนแรง สนับสนุนการวินิจฉัย Acute Myocardial Infarction การติดตามผล Serial Troponin และ ECG เป็นสิ่งจำเป็นในการประเมินความรุนแรงและการรักษา"
+      },
+      {
+        case_id: "Chem-002",
+        category: "Clinical Chemistry",
+        age: 38,
+        gender: "หญิง",
+        history: "ผู้ป่วยเป็นเบาหวานชนิดที่ 1 มาพบแพทย์ด้วยอาการคลื่นไส้ อาเจียน หายใจเร็วและลึก มีกลิ่นปากเหม็นหวาน",
+        lab_results: {
+          "Glucose": { value: 450, unit: "mg/dL", reference: "70-110" },
+          "pH": { value: 7.18, unit: "", reference: "7.35-7.45" },
+          "HCO3": { value: 12, unit: "mmol/L", reference: "22-28" },
+          "Anion Gap": { value: 28, unit: "mmol/L", reference: "8-16" },
+          "Ketones": { value: "Large", unit: "", reference: "Negative" },
+          "Na": { value: 135, unit: "mmol/L", reference: "135-145" },
+          "K": { value: 3.2, unit: "mmol/L", reference: "3.5-5.0" }
+        },
+        image_url: null,
+        correct_diagnosis: "Diabetic Ketoacidosis (DKA)",
+        diagnosis_options: [
+          "Diabetic Ketoacidosis (DKA)",
+          "Hyperglycemic Hyperosmolar State (HHS)",
+          "Lactic Acidosis",
+          "Uremic Acidosis",
+          "Alcoholic Ketoacidosis"
+        ],
+        appropriate_tests: ["Serum Osmolality", "Arterial Blood Gas", "Urine Ketones"],
+        test_options: [
+          "Serum Osmolality",
+          "Arterial Blood Gas",
+          "Urine Ketones",
+          "Lactate",
+          "BUN/Creatinine",
+          "Liver Function Test",
+          "HbA1c"
+        ],
+        rationale: "ผู้ป่วยแสดงอาการของ Diabetic Ketoacidosis (DKA) ครบถ้วน ได้แก่ 1) Hyperglycemia (Glucose 450 mg/dL) 2) Metabolic Acidosis (pH 7.18, HCO3 12) 3) Ketosis (Ketones Large) และมี High Anion Gap (28) ซึ่งเป็นลักษณะของ DKA อาการทางคลินิกเช่น Kussmaul breathing และกลิ่นปากเหม็นหวาน (Fruity odor) สนับสนุนการวินิจฉัย ควรระวั��� Hypokalemia ที่อา��เกิดขึ้นระหว่างการรักษา"
+      }
+    ];
+
+    // Configuration
+    const config = {
+      main_title: "Virtual Lab Analyzer",
+      subtitle: "ระบบฝึกฝนการวิเคราะห์และแปลผลข้อมูลทางห้องปฏิบัติการ",
+      submit_button_text: "ส่งคำตอบ",
+      next_case_button_text: "กรณีศึกษาถัดไป"
+    };
+
+    let currentCase = null;
+
+    // Initialize
+    function init() {
+      generateCaseButtons();
+    }
+
+    // Generate case selection buttons
+    function generateCaseButtons() {
+      const selector = document.getElementById('case-selector');
+      selector.innerHTML = '';
+      
+      casesData.forEach((caseData, index) => {
+        const button = document.createElement('button');
+        button.className = 'case-button';
+        button.textContent = `${caseData.category} - Case ${index + 1}`;
+        button.onclick = () => loadCase(caseData.case_id);
+        selector.appendChild(button);
+      });
+    }
+
+    // Load case
+    function loadCase(caseId) {
+      currentCase = casesData.find(c => c.case_id === caseId);
+      if (!currentCase) return;
+
+      // Update active button
+      const buttons = document.querySelectorAll('.case-button');
+      buttons.forEach((btn, idx) => {
+        btn.classList.remove('active');
+        if (casesData[idx].case_id === caseId) {
+          btn.classList.add('active');
+        }
+      });
+
+      renderCase();
+    }
+
+    // Render case
+    function renderCase() {
+      const container = document.getElementById('case-container');
+      
+      const html = `
+        <div class="case-display active">
+          <div class="patient-info">
+            <h2>ข้อมูลผู้ป่วย</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">รหัสกรณีศึกษา:</span>
+                <span class="info-value">${currentCase.case_id}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">หมวดหมู่:</span>
+                <span class="info-value">${currentCase.category}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">อายุ:</span>
+                <span class="info-value">${currentCase.age} ปี</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">เพศ:</span>
+                <span class="info-value">${currentCase.gender}</span>
+              </div>
+            </div>
+            <div class="history">
+              <strong>ประวัติ:</strong> ${currentCase.history}
+            </div>
+          </div>
+
+          <div class="lab-results">
+            <h2>ผลการตรวจทางห้องปฏิบัติการ</h2>
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th>รายการตรวจ</th>
+                  <th>ผลที่ได้</th>
+                  <th>หน่วย</th>
+                  <th>ค่าอ้างอิง</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${generateLabResultsRows()}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="input-section">
+            <h3>📋 กรุณาวิเคราะห์และตอบคำถาม</h3>
+            
+            <div class="form-group">
+              <label>1. การวินิจฉัยที่เหมาะสมที่สุดคือ:</label>
+              <div class="radio-group" id="diagnosis-group">
+                ${currentCase.diagnosis_options.map((option, idx) => `
+                  <div class="radio-option">
+                    <input type="radio" id="diag-${idx}" name="diagnosis" value="${option}">
+                    <label for="diag-${idx}">${option}</label>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>2. การตรวจเพิ่มเติมที่เหมาะสมคือ (เลือกได้มากกว่า 1 ข้อ):</label>
+              <div class="checkbox-group" id="tests-group">
+                ${currentCase.test_options.map((option, idx) => `
+                  <div class="checkbox-option">
+                    <input type="checkbox" id="test-${idx}" value="${option}">
+                    <label for="test-${idx}">${option}</label>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <button class="submit-button" id="submit-btn" onclick="analyzeCase()">
+              ${config.submit_button_text}
+            </button>
+          </div>
+
+          <div class="feedback-section" id="feedback-section">
+            <!-- Feedback will be shown here -->
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Generate lab results table rows
+    function generateLabResultsRows() {
+      let html = '';
+      for (const [test, data] of Object.entries(currentCase.lab_results)) {
+        const isAbnormal = checkAbnormal(data.value, data.reference);
+        const valueClass = data.value === "Pending" ? 'pending' : (isAbnormal ? 'abnormal' : 'normal');
+        
+        html += `
+          <tr>
+            <td><strong>${test}</strong></td>
+            <td class="${valueClass}">${data.value}</td>
+            <td>${data.unit || '-'}</td>
+            <td>${data.reference || '-'}</td>
+          </tr>
+        `;
+      }
+      return html;
+    }
+
+    // Check if value is abnormal
+    function checkAbnormal(value, reference) {
+      if (typeof value !== 'number' || !reference) return false;
+      
+      const ranges = reference.match(/[\d.]+/g);
+      if (!ranges || ranges.length < 2) return false;
+      
+      const min = parseFloat(ranges[0]);
+      const max = parseFloat(ranges[1]);
+      
+      return value < min || value > max;
+    }
+
+    // Analyze case
+    function analyzeCase() {
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'กำลังประมวลผล...';
+
+      // Get selected diagnosis
+      const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked');
+      if (!selectedDiagnosis) {
+        showInlineMessage('กรุณาเลือกการวินิจฉัย');
+        submitBtn.disabled = false;
+        submitBtn.textContent = config.submit_button_text;
+        return;
+      }
+
+      // Get selected tests
+      const selectedTests = Array.from(document.querySelectorAll('#tests-group input:checked'))
+        .map(input => input.value);
+
+      if (selectedTests.length === 0) {
+        showInlineMessage('กรุณาเลือกการตรวจเพิ่มเติมอย่างน้อย 1 รายการ');
+        submitBtn.disabled = false;
+        submitBtn.textContent = config.submit_button_text;
+        return;
+      }
+
+      // Calculate score
+      const diagnosisScore = selectedDiagnosis.value === currentCase.correct_diagnosis ? 60 : 0;
+      
+      const correctTests = selectedTests.filter(test => 
+        currentCase.appropriate_tests.includes(test)
+      ).length;
+      const testScore = (correctTests / currentCase.appropriate_tests.length) * 40;
+      
+      const totalScore = diagnosisScore + testScore;
+
+      // Show feedback
+      setTimeout(() => {
+        showFeedback(totalScore, selectedDiagnosis.value, selectedTests);
+        submitBtn.disabled = false;
+        submitBtn.textContent = config.submit_button_text;
+      }, 500);
+    }
+
+    // Show inline message
+    function showInlineMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(66, 165, 245, 0.4);
+        z-index: 1000;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      `;
+      messageDiv.textContent = message;
+      document.body.appendChild(messageDiv);
+
+      setTimeout(() => {
+        messageDiv.remove();
+      }, 2000);
+    }
+
+    // Show feedback
+    function showFeedback(score, selectedDiagnosis, selectedTests) {
+      const feedbackSection = document.getElementById('feedback-section');
+      
+      let scoreClass = 'poor';
+      let scoreText = 'ต้องปรับปรุง';
+      if (score >= 80) {
+        scoreClass = 'excellent';
+        scoreText = 'ยอดเยี่ยม!';
+      } else if (score >= 60) {
+        scoreClass = 'good';
+        scoreText = 'ดี';
+      }
+
+      const diagnosisCorrect = selectedDiagnosis === currentCase.correct_diagnosis;
+      const correctTests = selectedTests.filter(test => 
+        currentCase.appropriate_tests.includes(test)
+      );
+      const missedTests = currentCase.appropriate_tests.filter(test =>
+        !selectedTests.includes(test)
+      );
+
+      const html = `
+        <div class="feedback-header">
+          <h2>📊 ผลการประเมิน</h2>
+          <div class="score ${scoreClass}">${Math.round(score)}%</div>
+          <p style="font-size: 1.2rem; color: #666;">${scoreText}</p>
+        </div>
+
+        <div class="feedback-content">
+          <h4>🔍 การวินิจฉัย</h4>
+          <p><strong>คำตอบของคุณ:</strong> ${selectedDiagnosis}</p>
+          ${diagnosisCorrect ? 
+            '<div class="correct-answer">✅ ถูกต้อง! คำวินิจฉัยของคุณตรงกับเฉลย</div>' :
+            `<div class="correct-answer" style="background: #f8d7da; border-left: 4px solid #e74c3c;">
+              ❌ ไม่ถูกต้อง<br>
+              <strong>คำตอบที่ถูกต้อง:</strong> ${currentCase.correct_diagnosis}
+            </div>`
+          }
+
+          <h4>🧪 การตรวจเพิ่มเติม</h4>
+          <p><strong>คุณเลือก:</strong> ${selectedTests.join(', ')}</p>
+          <p><strong>การตรวจที่เหมาะสม:</strong> ${currentCase.appropriate_tests.join(', ')}</p>
+          ${correctTests.length > 0 ? 
+            `<div class="correct-answer">✅ เลือกถูกต้อง: ${correctTests.join(', ')}</div>` : ''
+          }
+          ${missedTests.length > 0 ?
+            `<div class="correct-answer" style="background: #fff3cd; border-left: 4px solid #f39c12;">
+              ⚠️ ควรเลือกเพิ่มเติม: ${missedTests.join(', ')}
+            </div>` : ''
+          }
+
+          <div class="rationale">
+            <h4>💡 เหตุผลและคำอธิบาย</h4>
+            <p>${currentCase.rationale}</p>
+          </div>
+        </div>
+
+        <button class="next-button" onclick="nextCase()">
+          ${config.next_case_button_text}
+        </button>
+      `;
+
+      feedbackSection.innerHTML = html;
+      feedbackSection.classList.add('active');
+      feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Next case
+    function nextCase() {
+      const currentIndex = casesData.findIndex(c => c.case_id === currentCase.case_id);
+      const nextIndex = (currentIndex + 1) % casesData.length;
+      loadCase(casesData[nextIndex].case_id);
+      
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Update config from SDK
+    async function onConfigChange(newConfig) {
+      const titleElement = document.getElementById('main-title');
+      if (titleElement) {
+        titleElement.textContent = newConfig.main_title || config.main_title;
+      }
+
+      const subtitleElement = document.getElementById('subtitle');
+      if (subtitleElement) {
+        subtitleElement.textContent = newConfig.subtitle || config.subtitle;
+      }
+
+      Object.assign(config, newConfig);
+
+      // Update buttons if case is loaded
+      const submitBtn = document.getElementById('submit-btn');
+      if (submitBtn && !submitBtn.disabled) {
+        submitBtn.textContent = config.submit_button_text;
+      }
+    }
+
+    // Initialize Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig: config,
+        onConfigChange: onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["main_title", config.main_title],
+          ["subtitle", config.subtitle],
+          ["submit_button_text", config.submit_button_text],
+          ["next_case_button_text", config.next_case_button_text]
+        ])
+      });
+    }
+
+    // Start app
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a72435345354b82',t:'MTc2NDU4ODczNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
